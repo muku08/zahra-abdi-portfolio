@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — Zahra Abdi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ─────────────────────────────────────────
+   RESET & DESIGN TOKENS
+───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --paper:      #f7f7f5;
+  --paper-warm: #eeecea;
+  --ink:        #1c1c1a;
+  --ink-mid:    #4a4a45;
+  --ink-light:  #8a8a82;
+  --border:     rgba(0,0,0,0.07);
+  --serif:      'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans:       'Inter', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ─────────────────────────────────────────
+   DOCUMENT
+───────────────────────────────────────── */
+html { height: 100%; }
+
+body {
+  height: 100%;
+  background: #d6d3cc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sans);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* ─────────────────────────────────────────
+   SCENE — arrows flanking the book
+───────────────────────────────────────── */
+.scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  height: 100%;
+  width: 100%;
+}
+
+/* ─────────────────────────────────────────
+   NAV ARROWS — minimal chevrons
+───────────────────────────────────────── */
+.arrow {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  cursor: pointer;
+  padding: 14px 6px;
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+  outline: none;
+}
+.arrow:hover { opacity: 0.75; }
+.arrow.disabled { opacity: 0.08; cursor: default; pointer-events: none; }
+.arrow svg { display: block; }
+
+/* ─────────────────────────────────────────
+   BOOK WRAPPER — fixed aspect ratio
+───────────────────────────────────────── */
+#book-wrapper {
+  position: relative;
+  width: min(88vw, 1400px);
+  aspect-ratio: 1440 / 920;
+  max-height: 90vh;
+  flex-shrink: 0;
+}
+
+#book {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  box-shadow:
+    0 1px 2px  rgba(0,0,0,0.05),
+    0 4px 24px rgba(0,0,0,0.10),
+    0 16px 60px rgba(0,0,0,0.09);
+}
+
+/* ─────────────────────────────────────────
+   SPREADS
+───────────────────────────────────────── */
+.spread {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  visibility: hidden;
+  perspective: 1800px;
+}
+.spread.is-active {
+  visibility: visible;
+  z-index: 2;
+}
+.spread.is-beneath {
+  visibility: visible;
+  z-index: 1;
+}
+
+/* ─────────────────────────────────────────
+   PAGES — common
+───────────────────────────────────────── */
+.page {
+  overflow: hidden;
+  position: relative;
+}
+.page-left {
+  flex: 1;
+  border-right: 1px solid var(--border);
+}
+
+/* ─────────────────────────────────────────
+   FLIP CONTAINER — holds the right "leaf"
+───────────────────────────────────────── */
+.flip-container {
+  flex: 1;
+  position: relative;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  will-change: transform;
+}
+
+.flip-front,
+.flip-back {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+/* Spine-edge shadow on flip faces — gives depth */
+.flip-front::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 28px; height: 100%;
+  background: linear-gradient(to right, rgba(0,0,0,0.05), transparent);
+  pointer-events: none;
+  z-index: 5;
+}
+.flip-back::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 28px; height: 100%;
+  background: linear-gradient(to left, rgba(0,0,0,0.05), transparent);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ─────────────────────────────────────────
+   PAGE TYPES — text
+───────────────────────────────────────── */
+.page-text {
+  padding: 54px 50px 78px;
+  background: var(--paper);
+}
+
+/* ─────────────────────────────────────────
+   PAGE TYPES — image
+───────────────────────────────────────── */
+.page-img {
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-warm);
+}
+.page-img img {
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.03);
+}
+
+/* ─────────────────────────────────────────
+   PAGE TYPES — portrait
+───────────────────────────────────────── */
+.page-portrait {
+  background: #e8e6e1;
+}
+.page-portrait img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+}
+
+/* ─────────────────────────────────────────
+   PAGE TYPES — CV (scrollable)
+───────────────────────────────────────── */
+.page.cv-page {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.cv-page {
+  padding: 36px 44px 46px;
+  background: var(--paper);
+}
+
+/* ─────────────────────────────────────────
+   SPINE SHADOW
+───────────────────────────────────────── */
+#spine-shadow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    transparent          0%,
+    transparent          calc(50% - 22px),
+    rgba(0,0,0,0.025)   calc(50% - 5px),
+    rgba(0,0,0,0.055)   50%,
+    rgba(0,0,0,0.025)   calc(50% + 5px),
+    transparent          calc(50% + 22px),
+    transparent          100%
+  );
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.18s ease;
+}
+
+/* ─────────────────────────────────────────
+   CLICK ZONES — invisible page tap areas
+───────────────────────────────────────── */
+.click-zone {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  z-index: 20;
+  -webkit-tap-highlight-color: transparent;
+}
+#click-prev { left: 0;  cursor: w-resize; }
+#click-next { right: 0; cursor: e-resize; }
+
+.click-zone::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.04);
+  transform: translateY(-50%) scale(0.6);
+  opacity: 0;
+  transition: opacity 0.16s, transform 0.16s;
+}
+#click-prev::before { right: 22px; }
+#click-next::before { left: 22px; }
+.click-zone:not(.disabled):hover::before { opacity: 1; transform: translateY(-50%) scale(1); }
+.click-zone.disabled { cursor: default; pointer-events: none; }
+
+/* ─────────────────────────────────────────
+   PAGE NUMBERS
+───────────────────────────────────────── */
+#page-numbers {
+  position: absolute;
+  bottom: 24px;
+  left: 50px; right: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 30;
+}
+.pnum {
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  color: var(--ink-light);
+  font-weight: 300;
+}
+#section-label {
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  font-weight: 300;
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* ─────────────────────────────────────────
+   TYPOGRAPHY UTILITIES
+───────────────────────────────────────── */
+.label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  font-weight: 400;
+}
+.rule {
+  display: block;
+  width: 34px; height: 1px;
+  background: rgba(0,0,0,0.11);
+  margin: 20px 0;
+}
+
+/* ─────────────────────────────────────────
+   COVER PAGE
+───────────────────────────────────────── */
+.cover-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.cover-top .cover-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  font-weight: 400;
+  display: block;
+  line-height: 2.2;
+}
+.cover-mid { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.cover-title {
+  font-family: var(--serif);
+  font-size: clamp(34px, 4.4vw, 62px);
+  font-weight: 400;
+  line-height: 1.08;
+  color: var(--ink);
+  margin-bottom: 22px;
+}
+.cover-title em { font-style: italic; }
+.cover-author {
+  font-family: var(--serif);
+  font-size: clamp(13px, 1.4vw, 17px);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-mid);
+  margin-bottom: 5px;
+}
+.cover-year {
+  font-size: 10.5px;
+  color: var(--ink-light);
+  font-weight: 300;
+  letter-spacing: 0.07em;
+}
+.cover-list {
+  list-style: none;
+  margin-top: 30px;
+}
+.cover-list li {
+  font-size: 10.5px;
+  color: var(--ink-mid);
+  font-weight: 300;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.cover-list .ly { font-size: 9.5px; color: var(--ink-light); white-space: nowrap; }
+.cover-bot { border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* ─────────────────────────────────────────
+   BIO / INTRO PAGE
+───────────────────────────────────────── */
+.bio-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;    /* flex-start + auto margin keeps footer anchored to bottom */
+}
+.bio-name {
+  font-family: var(--serif);
+  font-size: clamp(17px, 2vw, 25px);
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+.bio-body {
+  font-size: 12px;
+  line-height: 1.95;
+  font-weight: 300;
+  color: var(--ink-mid);
+  margin-bottom: 14px;
+  max-width: 44ch;
+}
+.bio-foot {
+  margin-top: auto;               /* pushes contact footer to bottom of page */
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.bio-foot p {
+  font-size: 10.5px;
+  color: var(--ink-mid);
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+/* ─────────────────────────────────────────
+   PROJECT TITLE PAGE
+───────────────────────────────────────── */
+.proj-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.big-num {
+  font-family: var(--serif);
+  font-size: clamp(68px, 9vw, 126px);
+  font-weight: 400;
+  line-height: 0.9;
+  color: rgba(0,0,0,0.055);
+  margin-bottom: -4px;
+}
+.proj-title {
+  font-family: var(--serif);
+  font-size: clamp(17px, 2vw, 26px);
+  font-weight: 400;
+  line-height: 1.28;
+  color: var(--ink);
+  margin-bottom: 26px;
+}
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-bottom: 24px;
+}
+.meta-grid .ml {
+  font-size: 8.5px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  display: block;
+  margin-bottom: 4px;
+}
+.meta-grid .mv {
+  font-size: 11px;
+  color: var(--ink-mid);
+  font-weight: 300;
+}
+.proj-desc {
+  font-size: 11.5px;
+  line-height: 1.95;
+  font-weight: 300;
+  color: var(--ink-mid);
+  max-width: 44ch;
+}
+
+/* ─────────────────────────────────────────
+   PROJECT NOTES PAGE
+───────────────────────────────────────── */
+.notes-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;        /* center removes the large dead gap at top */
+}
+.notes-rule {
+  display: block;
+  width: 24px; height: 1px;
+  background: rgba(0,0,0,0.10);
+  margin-bottom: 16px;
+}
+.notes-text {
+  font-size: 11px;
+  line-height: 1.95;
+  font-weight: 300;
+  color: var(--ink-mid);
+  font-style: italic;
+  max-width: 40ch;
+}
+
+/* ─────────────────────────────────────────
+   CLOSING PAGE
+───────────────────────────────────────── */
+.closing-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.closing-title {
+  font-family: var(--serif);
+  font-size: clamp(22px, 2.5vw, 34px);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--ink);
+  margin-top: 18px;
+  margin-bottom: 22px;
+}
+.closing-body {
+  font-size: 12.5px;
+  line-height: 1.95;
+  font-weight: 300;
+  color: var(--ink-mid);
+  max-width: 44ch;
+}
+.closing-foot {
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
+/* ─────────────────────────────────────────
+   CV PAGE
+───────────────────────────────────────── */
+.cv-name {
+  font-family: var(--serif);
+  font-size: clamp(19px, 2.3vw, 28px);
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.15;
+  margin-bottom: 3px;
+}
+.cv-profession {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  font-weight: 300;
+  margin-bottom: 10px;
+}
+.cv-contact-info {
+  font-size: 10px;
+  color: var(--ink-mid);
+  font-weight: 300;
+  line-height: 1.85;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+.cv-section { margin-top: 12px; }
+.cv-sh {
+  font-size: 7.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  font-weight: 400;
+  display: block;
+  margin-bottom: 7px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--border);
+}
+.cv-entry { margin-bottom: 6px; }
+.cv-et {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.cv-es {
+  font-size: 9.5px;
+  color: var(--ink-mid);
+  font-weight: 300;
+  line-height: 1.7;
+}
+.cv-pl {
+  display: block;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin: 5px 0 3px;
+}
+.cv-pi {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  color: var(--ink-mid);
+  font-weight: 300;
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.cv-al { list-style: none; }
+.cv-al li {
+  font-size: 9.5px;
+  color: var(--ink-mid);
+  font-weight: 300;
+  padding: 1px 0 1px 12px;
+  position: relative;
+  line-height: 1.65;
+}
+.cv-al li::before {
+  content: '\00B7';
+  position: absolute;
+  left: 0;
+  color: var(--ink-light);
+}
+.cv-sr {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 3px;
+  align-items: baseline;
+}
+.cv-st {
+  font-size: 7.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  white-space: nowrap;
+  min-width: 74px;
+}
+.cv-si {
+  font-size: 9.5px;
+  color: var(--ink-mid);
+  font-weight: 300;
+}
+.cv-langs {
+  font-size: 9.5px;
+  color: var(--ink-mid);
+  font-weight: 300;
+  line-height: 1.8;
+}
+.cv-refs { margin-top: 8px; }
+.cv-refs .cv-es { font-size: 9px; }
+
+/* ─────────────────────────────────────────
+   MOBILE — single-column scroll
+───────────────────────────────────────── */
+@media (max-width: 768px) {
+  html, body {
+    height: auto;
+    overflow: auto;
+    align-items: flex-start;
+  }
+  body { display: block; padding: 12px 0 48px; }
+
+  .scene {
+    display: block;
+    height: auto;
+  }
+
+  .arrow { display: none; }
+
+  #book-wrapper {
+    width: 100%;
+    aspect-ratio: auto;
+    max-height: none;
+    position: static;
+  }
+  #book {
+    position: static;
+    height: auto;
+    background: transparent;
+    box-shadow: none;
+    display: block;
+  }
+
+  .spread {
+    position: static !important;
+    visibility: visible !important;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+    perspective: none;
+    z-index: auto !important;
+  }
+
+  .page-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-left, .flip-container { flex: none; width: auto; }
+
+  .page {
+    height: auto;
+    background: var(--paper);
+    margin: 0 12px 3px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+  }
+
+  .flip-container {
+    transform-style: flat !important;
+    transform: none !important;
+    transition: none !important;
+    margin: 0 12px 3px;
+  }
+  .flip-front {
+    position: static;
+    -webkit-backface-visibility: visible;
+    backface-visibility: visible;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+  }
+  .flip-front::after,
+  .flip-back::after { display: none; }
+  .flip-back { display: none; }
+
+  .page-text  { padding: 36px 22px 42px; }
+  .page-img   { min-height: 56vw; padding: 12px; }
+  .page-portrait { min-height: 72vw; }
+  .page.cv-page { overflow-y: visible; height: auto; padding: 32px 22px 38px; }
+
+  #spine-shadow,
+  .click-zone,
+  #page-numbers { display: none; }
+
+  .meta-grid { grid-template-columns: 1fr; }
+  .cover-list { display: none; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="scene">
+
+  <!-- Left arrow -->
+  <button class="arrow disabled" id="arrow-prev" aria-label="Previous page" onclick="flipBack()">
+    <svg width="16" height="30" viewBox="0 0 16 30" fill="none">
+      <path d="M14 2L2 15L14 28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <div id="book-wrapper">
+    <div id="book">
+      <!-- Spreads injected by JS -->
+    </div>
+    <div id="spine-shadow"></div>
+    <div class="click-zone" id="click-prev" onclick="flipBack()"></div>
+    <div class="click-zone" id="click-next" onclick="flipForward()"></div>
+    <div id="page-numbers">
+      <span class="pnum" id="pnum-l"></span>
+      <span id="section-label"></span>
+      <span class="pnum" id="pnum-r"></span>
+    </div>
+  </div>
+
+  <!-- Right arrow -->
+  <button class="arrow" id="arrow-next" aria-label="Next page" onclick="flipForward()">
+    <svg width="16" height="30" viewBox="0 0 16 30" fill="none">
+      <path d="M2 2L14 15L2 28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIGURATION
+═══════════════════════════════════════════════════════ */
+const IMG = 'za/';
+const I = t => `${IMG}photo_2026-04-29_${t}.jpg`;
+const FLIP_MS = 850;
+const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+
+/* ═══════════════════════════════════════════════════════
+   PAGE FACTORY FUNCTIONS
+   Each returns { classes, html }
+═══════════════════════════════════════════════════════ */
+
+function pageImg(t, alt) {
+  return {
+    classes: 'page-img',
+    html: `<img src="${I(t)}" alt="${alt || ''}" loading="lazy">`
+  };
+}
+
+function pagePortrait(t) {
+  return {
+    classes: 'page-portrait',
+    html: `<img src="${I(t)}" alt="Zahra Abdi" loading="lazy">`
+  };
+}
+
+function pageCover() {
+  return {
+    classes: 'page-text',
+    html: `
+      <div class="cover-wrap">
+        <div class="cover-top">
+          <span class="cover-eyebrow">Academic Portfolio</span>
+          <span class="cover-eyebrow">Architecture</span>
+        </div>
+        <div class="cover-mid">
+          <h1 class="cover-title">Work<br><em>Portfolio.</em></h1>
+          <p class="cover-author">Zahra Abdi</p>
+          <p class="cover-year">2015 &mdash; 2021</p>
+          <ul class="cover-list">
+            <li><span>01 &nbsp;Cultural Commercial Building</span><span class="ly">2020</span></li>
+            <li><span>02 &nbsp;Digital Art &amp; Technology Exhibition</span><span class="ly">2019</span></li>
+            <li><span>03 &nbsp;Innovative School</span><span class="ly">2021</span></li>
+            <li><span>04 &nbsp;Naqsh-E-Jahan Mansion</span><span class="ly">2021</span></li>
+            <li><span>05 &nbsp;School of Art and Architecture</span><span class="ly">2021</span></li>
+            <li><span>06 &nbsp;Middle School &mdash; Climate Approach</span><span class="ly">2015</span></li>
+          </ul>
+        </div>
+        <div class="cover-bot">
+          <span class="label">Selected Academic Works</span>
+        </div>
+      </div>`
+  };
+}
+
+function pageBio() {
+  return {
+    classes: 'page-text',
+    html: `
+      <div class="bio-wrap">
+        <span class="label">About</span>
+        <span class="rule"></span>
+        <p class="bio-name">Zahra Abdi</p>
+        <p class="bio-body">
+          Zahra Abdi is an architecture designer based between Iran and the
+          United Kingdom. She holds a Bachelor of Architecture from Shiraz
+          University (2015&ndash;2020), where her thesis explored the intersection
+          of cultural programming and commercial architecture in Iranian cities.
+        </p>
+        <p class="bio-body">
+          Now working at UDEX Architecture in London, she brings a practice-informed
+          perspective to her academic work &mdash; balancing theoretical inquiry with
+          the pragmatic demands of real construction. Her projects share a commitment
+          to climate-responsive design, cultural sensitivity, and the activation of
+          public space.
+        </p>
+        <p class="bio-body">
+          From geothermal schools in the mountains of western Iran to technology
+          exhibition centres in Shiraz, the work moves between scales and contexts
+          while maintaining a coherent design position: that architecture must
+          mediate between people and their environment.
+        </p>
+        <div class="bio-foot">
+          <span class="label" style="margin-bottom:6px;">Contact</span>
+          <p>zahraabdi.arch96@gmail.com</p>
+        </div>
+      </div>`
+  };
+}
+
+function pageProjectTitle(n, title, loc, type, date, desc) {
+  const num = String(n).padStart(2, '0');
+  return {
+    classes: 'page-text',
+    html: `
+      <div class="proj-wrap">
+        <div class="big-num">${num}</div>
+        <h2 class="proj-title">${title}</h2>
+        <div class="meta-grid">
+          <div><span class="ml">Location</span><span class="mv">${loc}</span></div>
+          <div><span class="ml">Type</span><span class="mv">${type}</span></div>
+          <div><span class="ml">Date</span><span class="mv">${date}</span></div>
+          <div><span class="ml">Role</span><span class="mv">Design &amp; Visualisation</span></div>
+        </div>
+        <p class="proj-desc">${desc}</p>
+      </div>`
+  };
+}
+
+function pageNotes(text) {
+  return {
+    classes: 'page-text',
+    html: `
+      <div class="notes-wrap">
+        <span class="notes-rule"></span>
+        <p class="notes-text">${text}</p>
+      </div>`
+  };
+}
+
+function pageClosing() {
+  return {
+    classes: 'page-text',
+    html: `
+      <div class="closing-wrap">
+        <div>
+          <span class="label">Academic Portfolio &mdash; Zahra Abdi</span>
+          <span class="rule"></span>
+          <p class="closing-title">Thank you<br>for your time.</p>
+          <p class="closing-body">
+            This portfolio represents six years of academic work in architecture &mdash;
+            exploring cultural contexts, climate-responsive design, the relationship
+            between built form and community life, and the dialogue between traditional
+            Iranian architecture and contemporary spatial thinking.
+          </p>
+        </div>
+        <div class="closing-foot">
+          <span class="label" style="margin-bottom:8px;">Contact</span>
+          <p style="font-size:11px; color:var(--ink-light); font-weight:300; line-height:1.9;">
+            zahraabdi.arch96@gmail.com
+          </p>
+        </div>
+      </div>`
+  };
+}
+
+function pageCVText() {
+  return {
+    classes: 'cv-page',
+    html: `
+      <div class="cv-inner">
+        <h2 class="cv-name">Zahra Abdi</h2>
+        <p class="cv-profession">Architecture Designer</p>
+        <p class="cv-contact-info">
+          zahraabdi.arch96@gmail.com &nbsp;&middot;&nbsp; +98 912 064 0212<br>
+          Karaj, Iran
+        </p>
+
+        <div class="cv-section">
+          <span class="cv-sh">Education</span>
+          <div class="cv-entry">
+            <div class="cv-et">Bachelor of Architecture &nbsp;&middot;&nbsp; Shiraz University</div>
+            <div class="cv-es">Sep 2015 &ndash; Aug 2020 &nbsp;&middot;&nbsp; GPA: 17.75 / 20 (4.0 / 4.0)</div>
+            <div class="cv-es">Thesis: Designing a Fashion Centre Located in Karaj</div>
+            <div class="cv-es">Supervisor: Dr. Hamidreza Sharif</div>
+          </div>
+        </div>
+
+        <div class="cv-section">
+          <span class="cv-sh">Experience</span>
+          <div class="cv-entry">
+            <div class="cv-et">Architecture Designer &nbsp;&middot;&nbsp; UDEX Architecture, London</div>
+            <div class="cv-es">January 2020 &ndash; Present</div>
+          </div>
+          <span class="cv-pl">Selected UK Projects</span>
+          <div class="cv-pi"><span>36 Uxendon Crescent, Wembley</span><span>2024</span></div>
+          <div class="cv-pi"><span>552 High Road, Wembley</span><span>2024</span></div>
+          <div class="cv-pi"><span>65 Victoria Road, Barnet</span><span>2023</span></div>
+          <div class="cv-pi"><span>22 Durley Avenue, Harrow</span><span>2022</span></div>
+        </div>
+
+        <div class="cv-section">
+          <span class="cv-sh">Teaching</span>
+          <div class="cv-es">Architectural Representation 1 &nbsp;&middot;&nbsp; Shiraz University, 2017&ndash;2018</div>
+        </div>
+
+        <div class="cv-section">
+          <span class="cv-sh">Awards &amp; Recognition</span>
+          <ul class="cv-al">
+            <li>Top 10% national university entrance examination</li>
+            <li>Full 4-year scholarship, Shiraz University</li>
+            <li>Honourable Mention, Creative Rural School Competition</li>
+          </ul>
+        </div>
+
+        <div class="cv-section">
+          <span class="cv-sh">Software</span>
+          <div class="cv-sr"><span class="cv-st">Highly Skilled</span><span class="cv-si">AutoCAD &middot; Revit &middot; SketchUp &middot; Photoshop &middot; InDesign</span></div>
+          <div class="cv-sr"><span class="cv-st">Skilled</span><span class="cv-si">Rhino &middot; Illustrator &middot; 3Ds Max &middot; V-Ray &middot; Enscape</span></div>
+          <div class="cv-sr"><span class="cv-st">Developing</span><span class="cv-si">Grasshopper &middot; Premiere &middot; After Effects &middot; Python</span></div>
+        </div>
+
+        <div class="cv-section">
+          <span class="cv-sh">Languages</span>
+          <div class="cv-langs">
+            Farsi (Native) &nbsp;&middot;&nbsp; English (Full Professional) &nbsp;&middot;&nbsp; Kurdish (Full Professional)<br>
+            Arabic (Elementary) &nbsp;&middot;&nbsp; French (Elementary)
+          </div>
+        </div>
+
+        <div class="cv-section cv-refs">
+          <span class="cv-sh">References</span>
+          <div class="cv-es">Dr. Hamidreza Sharif &nbsp;&middot;&nbsp; Dr. Sanaz Haeri &nbsp;&middot;&nbsp; Dr. Saam Kaviani</div>
+        </div>
+      </div>`
+  };
+}
+
+/* ═══════════════════════════════════════════════════════
+   SPREAD DEFINITIONS
+   { left, right, pages:[l,r], section }
+═══════════════════════════════════════════════════════ */
+const SPREADS = [
+
+  /* ── 0  COVER ─────────────────────────────────────── */
+  { left: pageCover(),
+    right: pageImg('18-01-24', 'Portfolio cover'),
+    pages: [null, null], section: null },
+
+  /* ── 1  BIO + TOC ─────────────────────────────────── */
+  { left: pageBio(),
+    right: pageImg('18-01-18', 'Table of Contents'),
+    pages: ['i', 'ii'], section: 'Contents' },
+
+  /* ═══ PROJECT 01  Cultural Commercial Building ══════
+         Karaj, Iran · Thesis · 2020
+  ═════════════════════════════════════════════════════ */
+
+  { left: pageProjectTitle(1, 'Cultural Commercial<br>Building', 'Karaj, Iran',
+      'Thesis &mdash; Cultural',
+      'Sep 2019 &ndash; Aug 2020',
+      'A thesis project proposing a cultural commercial centre in Karaj that integrates fashion retail, gallery levels, and a public atrium. A continuous ramp connects all floors while a double-skin facade with transparent LED screens transforms the building into an urban display by night.'),
+    right: pageImg('17-53-26', 'P01 title &amp; hero render'),
+    pages: ['1', '2'], section: '01 — Cultural Commercial Building' },
+
+  { left: pageImg('17-53-03', 'P01 site context'),
+    right: pageImg('17-53-54', 'P01 gallery levels &amp; screens'),
+    pages: ['3', '4'], section: '01 — Cultural Commercial Building' },
+
+  { left: pageImg('17-53-58', 'P01 atrium &amp; floor plan'),
+    right: pageImg('17-53-08', 'P01 design process &amp; section'),
+    pages: ['5', '6'], section: '01 — Cultural Commercial Building' },
+
+  { left: pageImg('18-00-46', 'P01 floor plans &amp; catwalk render'),
+    right: pageImg('18-01-27', 'P01 facade design process'),
+    pages: ['7', '8'], section: '01 — Cultural Commercial Building' },
+
+  /* ═══ PROJECT 02  Digital Art & Technology Exhibition ═
+         Shiraz, Iran · Educational · 2019
+  ═════════════════════════════════════════════════════ */
+
+  { left: pageProjectTitle(2, 'Digital Art &amp;<br>Technology Exhibition', 'Shiraz, Iran',
+      'Educational',
+      'Sep 2018 &ndash; Jan 2019',
+      'An exhibition centre for digital arts and technology &mdash; creating spaces for social encounters and hands-on engagement with emerging media. Six gallery levels connected by a continuous ramp, with a facade of transparent LED panels that activate the building day and night.'),
+    right: pageImg('17-53-12', 'P02 floor plan &amp; isometric'),
+    pages: ['9', '10'], section: '02 — Digital Art &amp; Technology Exhibition' },
+
+  { left: pageImg('18-00-42', 'P02 facade day &amp; night'),
+    right: pageImg('18-00-51', 'P02 programme &amp; ground plan'),
+    pages: ['11', '12'], section: '02 — Digital Art &amp; Technology Exhibition' },
+
+  { left: pageImg('18-01-54', 'P02 exploded facade diagram'),
+    right: pageNotes('The double-skin facade combines a structural outer layer with a secondary plane of transparent LED panels, creating a reactive surface that shifts between day and night modes. At night the building becomes an urban-scale display, animating the surrounding public realm.'),
+    pages: ['13', '14'], section: '02 — Digital Art &amp; Technology Exhibition' },
+
+  /* ═══ PROJECT 03  Innovative School ═════════════════
+         Sistan & Baluchestan, Iran · Competition · 2021
+  ═════════════════════════════════════════════════════ */
+
+  { left: pageProjectTitle(3, 'Innovative School', 'Sistan &amp; Baluchestan, Iran',
+      'Competition',
+      '2021',
+      'A competition entry for a school in one of Iran’s most arid regions. The design draws from the porcupine’s quill structure to create a wall system that manages solar gain and ventilation, producing shaded micro-climates for outdoor learning.'),
+    right: pageImg('18-01-10', 'P03 title &amp; hero render'),
+    pages: ['15', '16'], section: '03 — Innovative School' },
+
+  { left: pageImg('17-54-07', 'P03 site context'),
+    right: pageImg('17-53-50', 'P03 porcupine-inspired wall concept'),
+    pages: ['17', '18'], section: '03 — Innovative School' },
+
+  { left: pageImg('18-01-35', 'P03 floor plan &amp; roof isometric'),
+    right: pageNotes('Each classroom is sheltered by adjustable brise-soleil fins that track seasonal sun angles. The courtyard channels easterly breezes while providing shelter from the punishing summer sun &mdash; drawing on the spatial logic of traditional desert settlement in southern Iran.'),
+    pages: ['19', '20'], section: '03 — Innovative School' },
+
+  /* ═══ PROJECT 04  Naqsh-E-Jahan Mansion ════════════
+         Isfahan, Iran · Educational · 2021
+  ═════════════════════════════════════════════════════ */
+
+  { left: pageProjectTitle(4, 'Naqsh-E-Jahan<br>Mansion', 'Isfahan, Iran',
+      'Educational',
+      '2021',
+      'A residential mansion adjacent to the UNESCO-listed Naqsh-E-Jahan Square. The design integrates traditional Persian spatial organisation with a contemporary spiral structural system, framing views of the historic square from each level.'),
+    right: pageImg('18-01-43', 'P04 title &amp; hero render'),
+    pages: ['21', '22'], section: '04 — Naqsh-E-Jahan Mansion' },
+
+  { left: pageImg('17-53-46', 'P04 design process'),
+    right: pageImg('17-54-47', 'P04 location &amp; context'),
+    pages: ['23', '24'], section: '04 — Naqsh-E-Jahan Mansion' },
+
+  { left: pageImg('17-54-26', 'P04 spiral structure'),
+    right: pageNotes('The helical staircase acts as structural spine and spatial experience &mdash; winding upward through double-height volumes. Each landing frames a curated view of the historic square, connecting private domestic life to the ancient civic geometry outside.'),
+    pages: ['25', '26'], section: '04 — Naqsh-E-Jahan Mansion' },
+
+  /* ═══ PROJECT 05  School of Art & Architecture ═════
+         Bandar Kong, Iran · Educational · 2021
+  ═════════════════════════════════════════════════════ */
+
+  { left: pageProjectTitle(5, 'School of Art<br>&amp; Architecture', 'Bandar Kong, Iran',
+      'Educational',
+      '2021',
+      'A coastal school that responds to extreme climate through wind-catchers, deep window reveals, and a shaded courtyard. The facade references the weaving traditions of Bandar Kong’s fishing and trading communities.'),
+    right: pageImg('18-00-55', 'P05 title &amp; hero render'),
+    pages: ['27', '28'], section: '05 — School of Art &amp; Architecture' },
+
+  { left: pageImg('17-54-30', 'P05 site analysis'),
+    right: pageImg('18-01-06', 'P05 wind catcher &amp; ground plan'),
+    pages: ['29', '30'], section: '05 — School of Art &amp; Architecture' },
+
+  { left: pageImg('18-01-31', 'P05 window detail &amp; facade'),
+    right: pageNotes('The building turns away from the dominant south wind, opening to a shaded courtyard facing the cooler north sea breeze. Wind-catchers draw air through the section past thermal-mass walls, achieving passive cooling without mechanical systems.'),
+    pages: ['31', '32'], section: '05 — School of Art &amp; Architecture' },
+
+  /* ═══ PROJECT 06  Middle School — Climate Approach ══
+         Sarableh, Ilam, Iran · Educational · 2015
+  ═════════════════════════════════════════════════════ */
+
+  { left: pageProjectTitle(6, 'Middle School &mdash;<br>Climate Approach', 'Sarableh, Ilam, Iran',
+      'Educational',
+      '2015',
+      'A middle school with an integrated climate strategy &mdash; deploying geothermal heating, a greenhouse buffer zone, and passive solar strategies for near-zero energy consumption in a challenging mountain climate.'),
+    right: pageImg('17-53-36', 'P06 exploded plans &amp; render'),
+    pages: ['33', '34'], section: '06 — Middle School, Climate Approach' },
+
+  { left: pageImg('17-54-18', 'P06 location &amp; context'),
+    right: pageImg('17-53-43', 'P06 greenhouse concept'),
+    pages: ['35', '36'], section: '06 — Middle School, Climate Approach' },
+
+  /* spread 20 — geothermal section as climax image before the notes */
+  { left: pageImg('17-54-53', 'P06 climate strategies'),
+    right: pageImg('18-01-39', 'P06 geothermal section'),
+    pages: ['37', '38'], section: '06 — Middle School, Climate Approach' },
+
+  /* spread 21 — massing diagram supports the notes text */
+  { left: pageImg('18-01-02', 'P06 massing design process'),
+    right: pageNotes('The greenhouse acts as a thermal buffer year-round: warming air in winter through passive solar gain and driving ventilation in summer. Geothermal pipes beneath the foundation stabilise internal temperatures, reducing heating loads significantly.'),
+    pages: ['39', '40'], section: '06 — Middle School, Climate Approach' },
+
+  /* ── CLOSING ──────────────────────────────────────── */
+  { left: pageClosing(),
+    right: pageImg('18-01-14', 'Thank you &mdash; spiral structure'),
+    pages: [null, null], section: null },
+
+  /* ── CURRICULUM VITÆ ─────────────────────────── */
+  { left: pagePortrait('17-52-35'),
+    right: pageCVText(),
+    pages: [null, null], section: 'Curriculum Vitæ' },
+
+];
+
+/* ═══════════════════════════════════════════════════════
+   DOM BUILDER
+═══════════════════════════════════════════════════════ */
+function buildBook() {
+  const book = document.getElementById('book');
+
+  SPREADS.forEach((s, i) => {
+    const spread = document.createElement('div');
+    spread.className = 'spread' + (i === 0 ? ' is-active' : '');
+    spread.id = `spread-${i}`;
+
+    /* Left page — static */
+    const left = document.createElement('div');
+    left.className = `page page-left ${s.left.classes}`;
+    left.innerHTML = s.left.html;
+
+    /* Flip container — holds right page as a 3D leaf */
+    const fc = document.createElement('div');
+    fc.className = 'flip-container';
+
+    const front = document.createElement('div');
+    front.className = `page flip-front ${s.right.classes}`;
+    front.innerHTML = s.right.html;
+
+    const back = document.createElement('div');
+    back.className = 'page flip-back';
+
+    fc.appendChild(front);
+    fc.appendChild(back);
+
+    spread.appendChild(left);
+    spread.appendChild(fc);
+    book.appendChild(spread);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   3D PAGE-FLIP NAVIGATION
+═══════════════════════════════════════════════════════ */
+let current   = 0;
+let animating = false;
+const TOTAL   = SPREADS.length;
+
+const spineShadow = () => document.getElementById('spine-shadow');
+
+function flipForward() {
+  if (animating || current >= TOTAL - 1) return;
+  animating = true;
+
+  const currEl = document.getElementById(`spread-${current}`);
+  const nextEl = document.getElementById(`spread-${current + 1}`);
+  const fc     = currEl.querySelector('.flip-container');
+  const fBack  = fc.querySelector('.flip-back');
+
+  /* Populate back face with the next spread's left-page content */
+  const nextL = SPREADS[current + 1].left;
+  fBack.className = `page flip-back ${nextL.classes}`;
+  fBack.innerHTML = nextL.html;
+
+  /* Reveal next spread beneath the current one */
+  nextEl.classList.add('is-beneath');
+  spineShadow().style.opacity = '0';
+
+  /* Animate the right-page leaf from 0 to -180 deg */
+  void fc.offsetHeight;                       // force reflow
+  fc.style.transition = `transform ${FLIP_MS}ms ${EASE}`;
+  fc.style.transform  = 'rotateY(-180deg)';
+
+  const fallback = setTimeout(done, FLIP_MS + 250);
+  fc.addEventListener('transitionend', function h(e) {
+    if (e.propertyName !== 'transform') return;
+    fc.removeEventListener('transitionend', h);
+    clearTimeout(fallback);
+    done();
+  });
+
+  function done() {
+    if (!animating) return;               // guard against double-fire
+    currEl.classList.remove('is-active');
+    nextEl.classList.remove('is-beneath');
+    nextEl.classList.add('is-active');
+
+    fc.style.transition = 'none';
+    fc.style.transform  = '';
+    fBack.className = 'page flip-back';
+    fBack.innerHTML = '';
+
+    spineShadow().style.opacity = '1';
+    current++;
+    animating = false;
+    updateUI();
+  }
+}
+
+function flipBack() {
+  if (animating || current <= 0) return;
+  animating = true;
+
+  const currEl = document.getElementById(`spread-${current}`);
+  const prevEl = document.getElementById(`spread-${current - 1}`);
+  const fc     = prevEl.querySelector('.flip-container');
+  const fBack  = fc.querySelector('.flip-back');
+
+  /* Back face = the page we're "unflipping" away from (current left) */
+  const currL = SPREADS[current].left;
+  fBack.className = `page flip-back ${currL.classes}`;
+  fBack.innerHTML = currL.html;
+
+  /* Snap the previous spread's right leaf to -180 deg */
+  fc.style.transition = 'none';
+  fc.style.transform  = 'rotateY(-180deg)';
+
+  /* Swap visibility: prev on top, current beneath */
+  currEl.classList.remove('is-active');
+  currEl.classList.add('is-beneath');
+  prevEl.classList.add('is-active');
+
+  spineShadow().style.opacity = '0';
+
+  void fc.offsetHeight;
+  fc.style.transition = `transform ${FLIP_MS}ms ${EASE}`;
+  fc.style.transform  = 'rotateY(0deg)';
+
+  const fallback = setTimeout(done, FLIP_MS + 250);
+  fc.addEventListener('transitionend', function h(e) {
+    if (e.propertyName !== 'transform') return;
+    fc.removeEventListener('transitionend', h);
+    clearTimeout(fallback);
+    done();
+  });
+
+  function done() {
+    if (!animating) return;
+    currEl.classList.remove('is-beneath');
+
+    fc.style.transition = 'none';
+    fc.style.transform  = '';
+    fBack.className = 'page flip-back';
+    fBack.innerHTML = '';
+
+    spineShadow().style.opacity = '1';
+    current--;
+    animating = false;
+    updateUI();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   UI UPDATE
+═══════════════════════════════════════════════════════ */
+function updateUI() {
+  const s = SPREADS[current];
+  document.getElementById('pnum-l').textContent  = s.pages[0] ?? '';
+  document.getElementById('pnum-r').textContent  = s.pages[1] ?? '';
+
+  const sl = document.getElementById('section-label');
+  sl.textContent  = s.section ?? '';
+  sl.style.opacity = s.section ? '1' : '0';
+
+  document.getElementById('arrow-prev').classList.toggle('disabled', current === 0);
+  document.getElementById('arrow-next').classList.toggle('disabled', current === TOTAL - 1);
+  document.getElementById('click-prev').classList.toggle('disabled', current === 0);
+  document.getElementById('click-next').classList.toggle('disabled', current === TOTAL - 1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   KEYBOARD
+═══════════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') flipForward();
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   flipBack();
+});
+
+/* ═══════════════════════════════════════════════════════
+   TOUCH SWIPE
+═══════════════════════════════════════════════════════ */
+let _tx = 0;
+document.addEventListener('touchstart', e => { _tx = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - _tx;
+  if (Math.abs(dx) > 48) dx < 0 ? flipForward() : flipBack();
+}, { passive: true });
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+buildBook();
+updateUI();
+
+</script>
+</body>
+</html>
