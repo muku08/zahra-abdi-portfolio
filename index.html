@@ -639,18 +639,18 @@ body {
    MOBILE — single-column scroll
 ───────────────────────────────────────── */
 @media (max-width: 768px) {
-  html, body {
-    height: auto;
-    overflow: auto;
+
+  /* ── Document ── */
+  html, body { height: auto; overflow: auto; }
+  body {
+    display: block;
+    padding: 0 0 72px;
+    background: #d6d3cc;
     align-items: flex-start;
   }
-  body { display: block; padding: 12px 0 48px; }
 
-  .scene {
-    display: block;
-    height: auto;
-  }
-
+  /* ── Scene / book wrapper ── */
+  .scene { display: block; height: auto; gap: 0; }
   .arrow { display: none; }
 
   #book-wrapper {
@@ -667,56 +667,103 @@ body {
     display: block;
   }
 
+  /* ── Spreads — all visible, stacked ── */
   .spread {
     position: static !important;
     visibility: visible !important;
     display: flex;
     flex-direction: column;
-    margin-bottom: 4px;
+    margin-bottom: 0;
     perspective: none;
     z-index: auto !important;
   }
 
-  .page-left {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-  .page-left, .flip-container { flex: none; width: auto; }
+  /* ── Pages ── */
+  .page-left  { border-right: none; border-bottom: none; }
+  .page-left,
+  .flip-container { flex: none; width: 100%; }
 
   .page {
     height: auto;
     background: var(--paper);
-    margin: 0 12px 3px;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
   }
 
+  /* ── Flip container — disable 3-D, show front only ── */
   .flip-container {
     transform-style: flat !important;
     transform: none !important;
     transition: none !important;
-    margin: 0 12px 3px;
+    margin: 0;
   }
   .flip-front {
     position: static;
     -webkit-backface-visibility: visible;
     backface-visibility: visible;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.07);
   }
   .flip-front::after,
   .flip-back::after { display: none; }
   .flip-back { display: none; }
 
-  .page-text  { padding: 36px 22px 42px; }
-  .page-img   { min-height: 56vw; padding: 12px; }
-  .page-portrait { min-height: 72vw; }
-  .page.cv-page { overflow-y: visible; height: auto; padding: 32px 22px 38px; }
+  /* ── Text pages ── */
+  .page-text { padding: 36px 24px 40px; }
 
+  /* ── Image pages — full-bleed, tall enough to read ── */
+  .page-img {
+    min-height: 78vw;
+    padding: 0;
+    background: var(--paper-warm);
+  }
+  .page-img img {
+    width: 100%;
+    height: 100%;
+    min-height: 78vw;
+    object-fit: contain;
+    box-shadow: none;
+  }
+
+  /* ── Portrait & CV ── */
+  .page-portrait { min-height: 90vw; }
+  .page.cv-page  { overflow-y: visible; height: auto; padding: 36px 24px 44px; }
+
+  /* ── Project title pages — visual section break ── */
+  .proj-wrap { padding-top: 44px; border-top: 2px solid rgba(0,0,0,0.07); }
+  .big-num   { font-size: clamp(64px, 20vw, 110px); }
+  .proj-title { font-size: clamp(22px, 6.5vw, 38px); }
+  .meta-grid { grid-template-columns: 1fr 1fr; gap: 10px 0; }
+  .proj-desc { font-size: 12.5px; line-height: 1.85; margin-top: 16px; }
+
+  /* ── Cover ── */
+  .cover-wrap { padding: 48px 0 40px; }
+  .cover-title { font-size: clamp(32px, 10vw, 52px); }
+  .cover-list  { display: none; }
+
+  /* ── Bio ── */
+  .bio-name { font-size: clamp(16px, 5vw, 22px); }
+  .bio-body { font-size: 12.5px; max-width: 100%; }
+
+  /* ── Notes ── */
+  .notes-wrap  { justify-content: flex-start; padding-top: 36px; }
+  .notes-body  { font-size: 13px; line-height: 2; max-width: 100%; }
+  .notes-rule  { margin: 16px 0; }
+
+  /* ── Closing ── */
+  .closing-wrap { padding: 48px 24px 40px; }
+  .closing-title { font-size: clamp(28px, 8vw, 44px); }
+
+  /* ── Hide desktop-only chrome ── */
   #spine-shadow,
   .click-zone,
   #page-numbers { display: none; }
 
-  .meta-grid { grid-template-columns: 1fr; }
-  .cover-list { display: none; }
+  /* ── Thin separator between every page pair ── */
+  .page-left + * { border-top: 1px solid var(--border); }
+
+  /* ── First cover spread: no top border ── */
+  #spread-0 .page { border-top: none; }
+
 }
 
 </style>
